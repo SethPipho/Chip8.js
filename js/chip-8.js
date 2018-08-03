@@ -65,9 +65,9 @@ class Chip8 {
         let lower = this.mem[this.pc + 1]
 
         let op = (upper >>> 4) //first four bits of upper
-        let x = (upper & 0x0F) //bottom four bits of upper
+        let x = (upper & 0xF) //bottom four bits of upper
         let y = (lower >>> 4) //first four bits of upper, register address
-        let n = (lower & 0x0F) //bottom four bits of lower, register address
+        let n = (lower & 0xF) //bottom four bits of lower, register address
         let nnn = ((upper & 0xF) << 8) | lower //bottom 12 bits, memory address
 
       
@@ -90,6 +90,7 @@ class Chip8 {
                     default:
                         console.error("Instruction", hexFmt(upper,2) + hexFmt(lower,2), "not found")
                         vm.halt = true
+                        return
                 }
             break;
 
@@ -151,6 +152,7 @@ class Chip8 {
 
                     case 4: // Add Vx, Vy set Vx = Vx + Vy, if overflow (>255) set Vf to 1, else set V2 to zero
                         let result = (this.regs[x] + this.regs[y])
+                       
                         if (result > 255){
                             this.regs[0xF] = 1
                         } else {
@@ -183,7 +185,8 @@ class Chip8 {
                         this.regs[x] = this.regs[y] - this.regs[x]
                     break
 
-                    case 0xE: // SHL Vx set Vf to most signifcant byte of Vx, multiply Vx by 2 (Vx << 1)
+                    case 0xE: // SHL Vx set Vf to most signifcant bit of Vx, multiply Vx by 2 (Vx << 1)
+                        console.log(this.regs[x], this.regs[x] >>> 7)
                         this.regs[0xF] = this.regs[x] >>> 7
                         this.regs[x] = this.regs[x] << 1
                     break
@@ -308,15 +311,16 @@ class Chip8 {
                     break;
 
                     case 0x55: // LD [I], Vx Store registers V0 through Vx in memory starting at location I.
-                        for (let i = 0; i < x; i++){
-                            this.regs[i] = this.mem[this.reg_I + i]
+                        for (let i = 0; i <= x; i++){
+                            this.mem[this.reg_I + i] = this.regs[i]
                         }
                     break;
 
                     case 0x65: // LD Vx, [I]  Read registers V0 through Vx from memory starting at location I.
-                        for (let i = 0; i < x; i++){
-                            this.mem[this.reg_I + i] = this.regs[i]
+                        for (let i = 0; i <= x; i++){
+                            this.regs[i] = this.mem[this.reg_I + i]
                         }
+                
                     break;
 
                     default:

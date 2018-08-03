@@ -20,7 +20,9 @@ UI.canvas.height = 32 * 10
 
 UI.step1.onclick = () => {
    vm.halt = true
-   loop()
+   vm.cycle()
+   drawScreen(UI.ctx, vm.pixels)
+   UI.info.innerText = vmInfo(vm)
 }
 
 UI.step10.onclick = () => {
@@ -41,7 +43,7 @@ UI.halt.onclick = () => {
 
 
 
-fetch('/roms/GUESS')
+fetch('/roms/BLINKY')
 .then((res) => res.arrayBuffer())
 .then((buffer) => {
     console.log(buffer)
@@ -116,7 +118,7 @@ function initKeypad(){
 
 function init(){
     vm.load(rom)
-    //UI.assembly.innerHTML = '<pre>' + dissassemble(rom) + '</pre>'
+    UI.assembly.innerHTML = '<pre>' + dissassemble(rom) + '</pre>'
     initKeypad()
     loop()
 }
@@ -157,6 +159,7 @@ function drawScreen(ctx,pixels){
 function vmInfo(vm){
     return  `PC: ${hexFmt(vm.pc,4)} \n 
              REG:\n ----- \n ${Array.from(vm.regs).map((x,i) => 'V' + i.toString(16) + ": " + x.toString(16) ).join('\n')} 
+             STACK:\n ----- \n ${Array.from(vm.stack).map((x,i) =>  i.toString(16) + ": " + x.toString(16) ).join('\n')} 
              VI: ${hexFmt(vm.reg_I,2)} \n
              DT: ${vm.dt} 
              ST: ${vm.st}
