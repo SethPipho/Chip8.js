@@ -40,6 +40,8 @@ class Chip8 {
 
         this.input = new Array(16).fill(0)
 
+        this.userFlags = new Uint16Array(16)
+
         this.halt = false
 
         //load font sprites 
@@ -48,8 +50,6 @@ class Chip8 {
         for (let i = 0; i < font_arr.length;i++){
             this.mem[i] = font_arr[i]
         }
-
-        console.log(hexdump(this.mem))
     }
 
     load(buffer){
@@ -57,12 +57,20 @@ class Chip8 {
         for (let i = 0; i < data.length; i++){
             this.mem[i + 512] = data[i]
         }
+
+        
+        console.log(hexdump(this.mem))
+    
     }
 
     cycle(){
 
+       
+
         let upper = this.mem[this.pc]
         let lower = this.mem[this.pc + 1]
+
+       
 
         let op = (upper >>> 4) //first four bits of upper
         let x = (upper & 0xF) //bottom four bits of upper
@@ -85,6 +93,7 @@ class Chip8 {
                     case 0xEE: //RET Return from subroutine
                         this.sp -= 1
                         this.pc = this.stack[this.sp]
+                        
                     break;
 
                     default:
@@ -99,9 +108,10 @@ class Chip8 {
                 return
             break;
 
-            case 2: // Call addr Push pc to stack, jump to subroutine @ nnn, 
+            case 2: // Call addr Push pc to stack, jump to subroutine @ nnn,
+                
                 this.stack[this.sp] = this.pc
-                this.sp += 1
+                this.sp += 1 
                 this.pc = nnn
                 return
             break;
@@ -129,7 +139,7 @@ class Chip8 {
             break;
 
             case 7: //Add Vx,byte Vx = Vx + lower 
-                this.regs[x] += lower
+                this.regs[x] = this.regs[x] + lower
             break;
 
             case 8:
@@ -152,7 +162,7 @@ class Chip8 {
 
                     case 4: // Add Vx, Vy set Vx = Vx + Vy, if overflow (>255) set Vf to 1, else set V2 to zero
                         let result = (this.regs[x] + this.regs[y])
-                       
+                    
                         if (result > 255){
                             this.regs[0xF] = 1
                         } else {
@@ -162,7 +172,7 @@ class Chip8 {
                     break
 
                     case 5://SUB Vx, Vy Vx = Vx - Vy, if Vx > Vy, VF = is set to 1, else set to 0
-                        if ( this.regs[x] > this.regs[y]){
+                        if ( this.regs[x] >= this.regs[y]){
                             this.regs[0xF] = 1
                         } else {
                             this.regs[0xF] = 0
@@ -177,7 +187,7 @@ class Chip8 {
                     break
 
                     case 7://SUBN Vx, Vy Vx = Vy - Vx if Vy > Vx, VF = is set to 1, else set to 0
-                        if ( this.regs[y] > this.regs[x]){
+                        if ( this.regs[y] >= this.regs[x]){
                             this.regs[0xF] = 1
                         } else {
                             this.regs[0xF] = 0
@@ -186,7 +196,6 @@ class Chip8 {
                     break
 
                     case 0xE: // SHL Vx set Vf to most signifcant bit of Vx, multiply Vx by 2 (Vx << 1)
-                        console.log(this.regs[x], this.regs[x] >>> 7)
                         this.regs[0xF] = this.regs[x] >>> 7
                         this.regs[x] = this.regs[x] << 1
                     break
@@ -214,7 +223,7 @@ class Chip8 {
             break;
 
             case 0xC: // RND Vx, byte  Vx to rand and lower
-                let rand = Math.floor(Math.random() * 255)
+                let rand = Math.floor(Math.random() * 256)
                 this.regs[x] = rand & lower
             break;
 
@@ -288,10 +297,15 @@ class Chip8 {
 
                     case 0x1E: 
                         this.reg_I = this.reg_I + this.regs[x]
+                        if (this.reg_I > 0xFFF) {
+                            this.regs[0xF] = 1
+                            this.regs_I = this.reg_I & 0xFFF
+                        } else {
+                            this.regs[0xF] = 0
+                        }
                     break;
 
                     case 0x29: // LD F, Vx Set I = location of sprite for digit Vx.
-                        console.log("sprite", this.regs[x] & 0x0F)
                         this.reg_I = (this.regs[x] & 0x0F) * 5 
                     break;
                 
@@ -303,7 +317,7 @@ class Chip8 {
                         num -= 10 * tens
                         let ones = num
 
-                        console.log(this.regs[x], hunds, tens, ones)
+                        
 
                         this.mem[this.reg_I] = hunds
                         this.mem[this.reg_I + 1] = tens
@@ -319,6 +333,20 @@ class Chip8 {
                     case 0x65: // LD Vx, [I]  Read registers V0 through Vx from memory starting at location I.
                         for (let i = 0; i <= x; i++){
                             this.regs[i] = this.mem[this.reg_I + i]
+                        }
+                
+                    break;
+
+                    case 0x75: 
+                        for (let i = 0; i <= x; i++){
+                            this.userFlags[i] = this.regs[i]
+                        }
+                
+                    break;
+
+                    case 0x85: 
+                        for (let i = 0; i <= x; i++){
+                            this.regs[i] = this.userFlags[i] 
                         }
                 
                     break;
@@ -378,7 +406,7 @@ function dissassemble(buffer){
     let data = new Uint8Array(buffer)
     let output = ""
 
-    for (let i = 0; i < data.length; i += 2){
+    for (let i = 1; i < data.length - 1; i += 2){
      
         let upper = data[i]
         let lower = data[i+1]
@@ -401,11 +429,11 @@ function dissassemble(buffer){
             break;
 
             case 1:
-                output += 'JMP ' + hexFmt(nnn, 2) 
+                output += 'JMP ' + hexFmt(nnn, 3) 
             break;
 
             case 2:
-                output += 'CALL ' + hexFmt(nnn, 2) 
+                output += 'CALL ' + hexFmt(nnn, 3) 
             break;
 
             case 3:

@@ -43,7 +43,7 @@ UI.halt.onclick = () => {
 
 
 
-fetch('/roms/BLINKY')
+fetch('/roms/INVADERS.ch8')
 .then((res) => res.arrayBuffer())
 .then((buffer) => {
     console.log(buffer)
