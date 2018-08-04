@@ -42,7 +42,7 @@ class Chip8 {
             this.pixels.push(new Array(32).fill(0))
         }
 
-        this.input = new Uint16Array(8)
+        this.input = new Uint16Array(16)
 
         this.userFlags = new Uint16Array(16)
 
