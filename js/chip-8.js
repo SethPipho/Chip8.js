@@ -15,7 +15,21 @@ let font = [
     0xE0, 0x90, 0x90, 0x90, 0xE0,
     0xF0, 0x80, 0xF0, 0x80, 0xF0,
     0xF0, 0x80, 0xF0, 0x80, 0x80,
+
+    0xFF, 0xFF, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xFF, 0xFF, 0x18, 0x78, 0x78, 0x18, 0x18, 0x18    
+    ,0x18,0x18 ,0xFF ,0xFF ,0xFF ,0xFF ,0x03 ,0x03 ,0xFF ,0xFF ,0xC0 ,0xC0 ,0xFF ,0xFF ,0xFF ,0xFF   
+    ,0x03 ,0x03 ,0xFF ,0xFF ,0x03 ,0x03 ,0xFF ,0xFF ,0xC3 ,0xC3 ,0xC3 ,0xC3 ,0xFF ,0xFF ,0x03 ,0x03    
+    ,0x03 ,0x03 ,0xFF ,0xFF ,0xC0 ,0xC0 ,0xFF ,0xFF ,0x03 ,0x03 ,0xFF ,0xFF ,0xFF ,0xFF ,0xC0 ,0xC0   
+    ,0xFF ,0xFF ,0xC3 ,0xC3 ,0xFF ,0xFF ,0xFF ,0xFF ,0x03 ,0x03 ,0x06 ,0x0C ,0x18 ,0x18 ,0x18 ,0x18    
+    ,0xFF ,0xFF ,0xC3 ,0xC3 ,0xFF ,0xFF ,0xC3 ,0xC3 ,0xFF ,0xFF ,0xFF ,0xFF ,0xC3 ,0xC3 ,0xFF ,0xFF   
+    ,0x03 ,0x03 ,0xFF ,0xFF ,0x7E ,0xFF ,0xC3 ,0xC3 ,0xC3 ,0xFF ,0xFF ,0xC3 ,0xC3 ,0xC3 ,0xFC ,0xFC    
+    ,0xC3 ,0xC3 ,0xFC ,0xFC ,0xC3 ,0xC3 ,0xFC ,0xFC ,0x3C ,0xFF ,0xC3 ,0xC0 ,0xC0 ,0xC0 ,0xC0 ,0xC3   
+    ,0xFF ,0x3C ,0xFC ,0xFE ,0xC3 ,0xC3 ,0xC3 ,0xC3 ,0xC3 ,0xC3 ,0xFE ,0xFC ,0xFF ,0xFF ,0xC0 ,0xC0    
+    ,0xFF ,0xFF ,0xC0 ,0xC0 ,0xFF ,0xFF ,0xFF ,0xFF ,0xC0 ,0xC0 ,0xFF ,0xFF ,0xC0 ,0xC0 ,0xC0 ,0xC0  
+
 ]
+
+
 
 class Chip8 {
     constructor(){
@@ -38,13 +52,15 @@ class Chip8 {
 
         this.pixels = [] //display
         
-        for (let i = 0; i < 64; i++){
-            this.pixels.push(new Array(32).fill(0))
+        for (let i = 0; i < 128; i++){
+            this.pixels.push(new Array(64).fill(0))
         }
 
         this.input = new Uint16Array(16)
 
-        this.userFlags = new Uint16Array(16)
+
+        this.extendedMode = false // flag full-screen graphics mode (Super Chip-8)
+        this.userFlags = new Uint16Array(16) // user flags (Super Chip-8)
 
         this.halt = false
 
@@ -81,6 +97,20 @@ class Chip8 {
       
        switch(op) {
             case 0:
+                if (y ==0xC){ //SCRL n scroll n lines down
+                    console.log('scroll', n)
+                    for (let x = 0; x < 128; x++){
+                        for (let y = 63; y > 0; y--){
+                            this.pixels[x][y] = this.pixels[x][y - 1]
+                        }
+                    }
+
+                    for (let x = 0; x < 128; x++){
+                        this.pixels[x][0] = 0
+                    }
+                    break;
+                }
+
                 switch(lower){
                     case 0xE0: //CLS Clear Screen
                         for (let x = 0; x < 64; x++){
@@ -93,10 +123,20 @@ class Chip8 {
                     case 0xEE: //RET Return from subroutine
                         this.sp -= 1
                         this.pc = this.stack[this.sp]
-                        
+                    break;
+
+                
+
+                    case 0xFE: //EMD Disable extended mode
+                        this.extendedMode = false
+                    break;
+
+                    case 0xFF: //EME Enable extended mode
+                        this.extendedMode = true
                     break;
 
                     default:
+                        
                         console.error("Instruction", hexFmt(upper,2) + hexFmt(lower,2), "not found")
                         vm.halt = true
                         return
@@ -231,10 +271,13 @@ class Chip8 {
 
                 this.regs[0xF] = 0
 
-                for (let offset = 0; offset < n; offset++){
-                    for (let i = 0; i < 8; i++){
-                        let _x = (this.regs[x] + i) % 64
-                        let _y = (this.regs[y] + offset) % 32
+               let height = (n == 0)?16:n
+               let width = (n == 0)?16: 8
+
+                for (let offset = 0; offset < height; offset++){
+                    for (let i = 0; i < width; i++){
+                        let _x = (this.regs[x] + i) % ((this.extendedMode) ? 128 : 64)
+                        let _y = (this.regs[y] + offset) % ((this.extendedMode) ? 64 : 32)
                         let prev = this.pixels[_x][_y]
                         this.pixels[_x][_y] = ((this.mem[this.reg_I + offset] >>> (7 - i)) & 1) ^ this.pixels[_x][_y]
                         
@@ -307,9 +350,15 @@ class Chip8 {
                     break;
 
                     case 0x29: // LD F, Vx Set I = location of sprite for digit Vx.
-                        this.reg_I = (this.regs[x] & 0x0F) * 5 
+                        this.reg_I = (this.regs[x]) * 5 
                     break;
-                
+
+                    case 0x30: // LD F, Vx Set I = location of sprite for digit Vx. (10 byte version)
+                        this.reg_I = ((this.regs[x]) * 10) + 0x50 
+                        console.log(((this.regs[x]) * 10) + 0x50)
+                    break;
+
+                    
                     case 0x33: // LD B, Vx Store BCD representation of Vx in memory locations I, I+1, and I+2.
                         let num = this.regs[x]
                         let hunds = Math.floor(num / 100)
@@ -317,8 +366,6 @@ class Chip8 {
                         let tens = Math.floor(num/10)
                         num -= 10 * tens
                         let ones = num
-
-                        
 
                         this.mem[this.reg_I] = hunds
                         this.mem[this.reg_I + 1] = tens

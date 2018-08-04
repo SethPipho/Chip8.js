@@ -13,11 +13,16 @@ let UI = {
     play: document.getElementById('play'),
     halt: document.getElementById('halt'),
     keypad: document.getElementById('keypad'),
-    fileSelect: document.getElementById('file')
+    fileSelect: document.getElementById('file'),
+    reset: document.getElementById('reset')
 }
 
 UI.canvas.width = 64 * 10
 UI.canvas.height = 32 * 10
+
+UI.reset.onclick = () => {
+    init()
+}
 
 UI.fileSelect.onchange = (event) => {
     let file = event.target.files[0]
@@ -137,12 +142,12 @@ let _loop
 
 function loop(){
   
-    for (let i = 0; i < 8; i++){ 
+    for (let i = 0; i < 16; i++){ 
         vm.cycle()
     }
     if (vm.dt > 0){ vm.dt -= 1 }
     
-    drawScreen(UI.ctx, vm.pixels)
+    drawScreen(UI.ctx, vm)
     UI.info.innerText = vmInfo(vm)
 
     if (!vm.halt){
@@ -151,16 +156,19 @@ function loop(){
    
 }
 
-function drawScreen(ctx,pixels){
+function drawScreen(ctx, vm){
     let width = ctx.canvas.width
     let height = ctx.canvas.height
-    
-    let pixel_w = width/64
-    let pixel_h = height/32
 
-    for (let x = 0; x < 64; x++){
-        for (let y = 0; y < 32; y++){
-            ctx.fillStyle = (pixels[x][y] == 1)? "rgb(230,230,230)" : "rgb(60,60,60)"
+    let pixels_x = ((vm.extendedMode) ? 128:64)
+    let pixels_y = ((vm.extendedMode) ? 64:32)
+    
+    let pixel_w = width / pixels_x
+    let pixel_h = height/ pixels_y
+
+    for (let x = 0; x < pixels_x; x++){
+        for (let y = 0; y < pixels_y; y++){
+            ctx.fillStyle = (vm.pixels[x][y] == 1)? "rgb(230,230,230)" : "rgb(60,60,60)"
             ctx.fillRect(x * pixel_w, y * pixel_h, pixel_w, pixel_w)
         }
     }
