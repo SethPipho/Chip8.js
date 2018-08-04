@@ -12,11 +12,25 @@ let UI = {
     step10: document.getElementById('step-10'),
     play: document.getElementById('play'),
     halt: document.getElementById('halt'),
-    keypad: document.getElementById('keypad')
+    keypad: document.getElementById('keypad'),
+    fileSelect: document.getElementById('file')
 }
 
 UI.canvas.width = 64 * 10
 UI.canvas.height = 32 * 10
+
+UI.fileSelect.onchange = (event) => {
+    let file = event.target.files[0]
+    let reader = new FileReader
+    reader.onload = (event) => {
+        console.log(event.target.result)
+        rom = event.target.result
+        window.cancelAnimationFrame(_loop)
+        init()
+    }
+
+    reader.readAsArrayBuffer(file)
+}
 
 UI.step1.onclick = () => {
    vm.halt = true
@@ -43,14 +57,6 @@ UI.halt.onclick = () => {
 
 
 
-fetch('/roms/INVADERS.ch8')
-.then((res) => res.arrayBuffer())
-.then((buffer) => {
-    console.log(buffer)
-    rom = buffer
-    init()
-})
-
 
 
 function initKeypad(){
@@ -71,7 +77,7 @@ function initKeypad(){
         'Z':12,
         'X':13,
         'C':14,
-        'Vq':15,
+        'V':15,
     }
 
     document.onkeydown = (event) => {
@@ -92,12 +98,15 @@ function initKeypad(){
 
     }
 
+    UI.keypad.innerHTML = ""
+
     for (let i = 0; i < 16; i++){
         let btn = document.createElement('button')
         btn.innerText = i.toString(16)
 
         btn.onmousedown = () => {
             vm.input[i] = 1
+            console.log(i)
         }
 
         btn.onmouseup = () => {
@@ -117,13 +126,14 @@ function initKeypad(){
 
 
 function init(){
+    vm.reset()
     vm.load(rom)
     UI.assembly.innerHTML = '<pre>' + dissassemble(rom) + '</pre>'
     initKeypad()
     loop()
 }
 
-
+let _loop
 
 function loop(){
   
@@ -136,7 +146,7 @@ function loop(){
     UI.info.innerText = vmInfo(vm)
 
     if (!vm.halt){
-        window.requestAnimationFrame(loop)
+        _loop = window.requestAnimationFrame(loop)
     }
    
 }

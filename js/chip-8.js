@@ -19,6 +19,10 @@ let font = [
 
 class Chip8 {
     constructor(){
+        this.reset()
+    }
+
+    reset(){
 
         this.pc = 0x200 //program counter
         
@@ -38,7 +42,7 @@ class Chip8 {
             this.pixels.push(new Array(32).fill(0))
         }
 
-        this.input = new Array(16).fill(0)
+        this.input = new Uint16Array(8)
 
         this.userFlags = new Uint16Array(16)
 
@@ -65,12 +69,8 @@ class Chip8 {
 
     cycle(){
 
-       
-
         let upper = this.mem[this.pc]
         let lower = this.mem[this.pc + 1]
-
-       
 
         let op = (upper >>> 4) //first four bits of upper
         let x = (upper & 0xF) //bottom four bits of upper
@@ -279,6 +279,7 @@ class Chip8 {
                         for (let i = 0; i < 16; i++){
                             if (this.input[i] == 1){
                                 this.regs[x] = i 
+                                this.input[i] = 0
                                 this.pc += 2
                             }
                         }
@@ -406,7 +407,7 @@ function dissassemble(buffer){
     let data = new Uint8Array(buffer)
     let output = ""
 
-    for (let i = 1; i < data.length - 1; i += 2){
+    for (let i = 0; i < data.length - 1; i += 2){
      
         let upper = data[i]
         let lower = data[i+1]
