@@ -5,7 +5,6 @@ let rom
 let romList = []
 let selectedRom = 33
 
-
 let UI = {
     canvas: document.getElementById('screen'),
     ctx:    document.getElementById('screen').getContext('2d'),
@@ -51,7 +50,7 @@ function loadRom(){
 }
 
 UI.romSelect.onchange = () => {
-    UI.fileSelect.value = ""
+    UI.fileSelect.innerText = "Select File"
     loadRom()
 }
 
@@ -66,8 +65,9 @@ UI.fileSelect.onchange = (event) => {
     reader.onload = (event) => {
         selectedRom = -1
         UI.romSelect.selectedIndex = -1
-
+        UI.fileSelect.innerText = file.name
         rom = event.target.result
+        
         vm.reset()
         vm.load(rom)
     }
@@ -140,6 +140,24 @@ function initKeypad(){
 }
 
 
+function drawScreen(ctx, vm){
+    let width = ctx.canvas.width
+    let height = ctx.canvas.height
+
+    let pixels_x = ((vm.extendedMode) ? 128:64)
+    let pixels_y = ((vm.extendedMode) ? 64:32)
+    
+    let pixel_w = width / pixels_x
+    let pixel_h = height/ pixels_y
+
+    for (let x = 0; x < pixels_x; x++){
+        for (let y = 0; y < pixels_y; y++){
+            ctx.fillStyle = (vm.pixels[x][y] == 1)? "rgb(230,230,230)" : "rgb(60,60,60)"
+            ctx.fillRect(x * pixel_w, y * pixel_h, pixel_w, pixel_w)
+        }
+    }
+}
+
 
 
 loop()
@@ -162,27 +180,10 @@ function loop(){
         }
         drawScreen(UI.ctx, vm)
     }
-    
     window.requestAnimationFrame(loop)
 }
 
-function drawScreen(ctx, vm){
-    let width = ctx.canvas.width
-    let height = ctx.canvas.height
 
-    let pixels_x = ((vm.extendedMode) ? 128:64)
-    let pixels_y = ((vm.extendedMode) ? 64:32)
-    
-    let pixel_w = width / pixels_x
-    let pixel_h = height/ pixels_y
-
-    for (let x = 0; x < pixels_x; x++){
-        for (let y = 0; y < pixels_y; y++){
-            ctx.fillStyle = (vm.pixels[x][y] == 1)? "rgb(230,230,230)" : "rgb(60,60,60)"
-            ctx.fillRect(x * pixel_w, y * pixel_h, pixel_w, pixel_w)
-        }
-    }
-}
 
 
 

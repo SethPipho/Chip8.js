@@ -1,7 +1,57 @@
 body {
     font-family: monospace;
+    color:rgb(100,100,100);
+    margin: 2em auto;
+    width: 384px;
+    background-color:rgb(245,245,245)  
+}
+
+input[type="file"] {
+    display: none;
+}
+
+select {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    color:rgb(100,100,100);
+    padding:5px;
+}
+
+#file {
+    background-color:white;
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 3px;
 }
 
 button {
-    font-family: monospace;
+    background-color:white;
+    color:rgb(100,100,100);
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 3px;
 }
+
+
+#keypad {
+    width:210px;
+    margin:0 auto;
+}
+
+#keypad button {
+    font-family: monospace;
+    width:50px;
+    height:50px;
+
+   
+    margin:1px;
+
+
+    border-radius: 3px;
+
+}
+

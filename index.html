@@ -6,27 +6,35 @@
   <title></title>
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
-  Select ROM
-  <select id='rom-select'>
-  </select>
+  <h2> CHIP-8</h2>
   
-  <br><br>
+    ROM
+    <select id='rom-select'>
+    </select>
 
-  Load From File    
-  <input type='file' id='file'>   
-  
-  <br><br>
-  <button id="reset">Reset</button>
-  
-  <br><br>
+    | File
+    
+    <label id ="file">
+        <input type="file"/>
+        Select File
+    </label>
 
-  <canvas id="screen"></canvas> 
-  <br>
-  <div id="keypad"></div>
-  
- <script src="js/chip-8.js"></script>
+    <br>
+    <br>
+    <button id="reset">Reset</button>
+
+    <br>
+    <br>
+
+    <canvas id="screen"></canvas>
+    <br><br>
+    <div id="keypad"></div>
+ 
+
+  <script src="js/chip-8.js"></script>
   <script src="js/main.js"></script>
 </body>
 
