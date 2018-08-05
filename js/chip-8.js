@@ -159,7 +159,6 @@ class Chip8 {
                     default:
                         
                         console.error("Instruction", hexFmt(upper,2) + hexFmt(lower,2), "not found")
-                        vm.halt = true
                         return
                 }
             break;
@@ -263,7 +262,6 @@ class Chip8 {
 
                     default:
                         console.error("Instruction", hexFmt(upper,2) + hexFmt(lower,2), "not found")
-                        this.halt = true
                         return                    
                 }
             break;
@@ -359,10 +357,8 @@ class Chip8 {
 
                     default:
                         console.error("Instruction", hexFmt(upper,2) + hexFmt(lower,2), "not found")
-                        this.halt = true
                         return  
                 }
-            
             break;
 
             case 0xF:
@@ -382,7 +378,6 @@ class Chip8 {
                         }
                         return
                     break;
-
 
                     case 0x15: // LD Dt, Vx set delay timer to vx
                         this.dt = this.regs[x]
@@ -409,7 +404,6 @@ class Chip8 {
 
                     case 0x30: // LD F, Vx Set I = location of sprite for digit Vx. (10 byte version)
                         this.reg_I = ((this.regs[x]) * 10) + 0x50 
-                        console.log(((this.regs[x]) * 10) + 0x50)
                     break;
 
                     
@@ -455,7 +449,6 @@ class Chip8 {
 
                     default:
                         console.error("Instruction", hexFmt(upper,2) + hexFmt(lower,2), "not found")
-                        this.halt = true
                         return
 
                 }
@@ -463,7 +456,6 @@ class Chip8 {
 
            default:
                 console.log(hexFmt(this.pc, 3),hexFmt(upper,2) + hexFmt(lower,2), 'not found')
-                this.halt = true
                 return
               
        }

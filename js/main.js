@@ -1,71 +1,78 @@
-let rom
 let vm = new Chip8()
+vm.halt = true
 
-let sound = new Audio('static/tone.wav')
-sound.preload = true
+let rom
+let romList = []
+let selectedRom = 33
 
 
 let UI = {
-    info:   document.getElementById('info'),
     canvas: document.getElementById('screen'),
     ctx:    document.getElementById('screen').getContext('2d'),
-    assembly: document.getElementById('assembly'),
-    step1: document.getElementById('step-1'),
-    step10: document.getElementById('step-10'),
-    play: document.getElementById('play'),
-    halt: document.getElementById('halt'),
+    romSelect: document.getElementById('rom-select'),
     keypad: document.getElementById('keypad'),
     fileSelect: document.getElementById('file'),
     reset: document.getElementById('reset')
 }
 
-UI.canvas.width = 64 * 10
-UI.canvas.height = 32 * 10
+initKeypad()
+
+UI.canvas.width = 64 * 6
+UI.canvas.height = 32 * 6
+
+let sound = new Audio('static/tone.wav')
+sound.preload = true
+
+//load json file with list of availble roms
+fetch('/roms/_roms.json')
+    .then((res) => res.json())
+    .then((data) => {
+        
+        data.forEach((d,i) => {
+            let option = document.createElement('option')
+            option.innerText = '[' + d.sys + '] ' + d.name
+            UI.romSelect.appendChild(option)
+        })
+        romList = data
+        UI.romSelect.selectedIndex = selectedRom
+
+        loadRom()
+    })
+
+//load rom over network
+function loadRom(){
+    fetch('/roms/' + romList[UI.romSelect.selectedIndex].file)
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+            rom = buffer
+            vm.reset()
+            vm.load(rom)
+        })       
+}
+
+UI.romSelect.onchange = () => {
+    UI.fileSelect.value = ""
+    loadRom()
+}
 
 UI.reset.onclick = () => {
-    window.cancelAnimationFrame(_loop)
-    init()
+   vm.reset()
+   vm.load(rom)
 }
 
 UI.fileSelect.onchange = (event) => {
     let file = event.target.files[0]
     let reader = new FileReader
     reader.onload = (event) => {
-        console.log(event.target.result)
-        rom = event.target.result
-        window.cancelAnimationFrame(_loop)
-        init()
-    }
+        selectedRom = -1
+        UI.romSelect.selectedIndex = -1
 
+        rom = event.target.result
+        vm.reset()
+        vm.load(rom)
+    }
     reader.readAsArrayBuffer(file)
 }
-
-UI.step1.onclick = () => {
-   vm.halt = true
-   vm.cycle()
-   drawScreen(UI.ctx, vm)
-   UI.info.innerText = vmInfo(vm)
-}
-
-UI.step10.onclick = () => {
-    vm.halt = true
-    for (let k = 0; k < 10; k++){
-        vm.cycle()
-    }
-    drawScreen(UI.ctx, vm)
-}
-
-UI.play.onclick = () => {
-    vm.halt = false
-    loop()
-}
-
-UI.halt.onclick = () => {
-    vm.halt = true
-}
-
-
-
 
 
 function initKeypad(){
@@ -90,26 +97,28 @@ function initKeypad(){
     }
 
     document.onkeydown = (event) => {
-
         let key = String.fromCharCode(event.keyCode)
         let index = key_mapping[key]
         vm.input[index] = 1
-
     }
 
     document.onkeyup = (event) => {
-
         let key = String.fromCharCode(event.keyCode)
         let index = key_mapping[key]
         vm.input[index] = 0
-
     }
 
-    UI.keypad.innerHTML = ""
+    
 
     for (let i = 0; i < 16; i++){
         let btn = document.createElement('button')
-        btn.innerText = i.toString(16)
+
+        for (let letter in key_mapping){
+            if (key_mapping[letter] == i){
+                btn.innerText = i.toString(16) + "(" + letter + ")"
+                break
+            }
+        }
 
         btn.onmousedown = () => {
             vm.input[i] = 1
@@ -131,43 +140,30 @@ function initKeypad(){
 }
 
 
-function init(){
-    vm.reset()
-    vm.load(rom)
-    UI.assembly.innerHTML = '<pre>' + dissassemble(rom) + '</pre>'
-    initKeypad()
-    loop()
-}
 
-let _loop
-let sound_on = false
+
+loop()
 
 function loop(){
-  
-    for (let i = 0; i < 8; i++){ 
-        vm.cycle()
-    }
-    if (vm.dt > 0){ vm.dt -= 1 }
-    
-    if (vm.st > 0){ 
-        vm.st -= 1
-        sound.play()
-    } else {
-        sound.pause()
-        sound.currentTime = 0
-    }
-
-    
-
-    
-    
-    drawScreen(UI.ctx, vm)
-    UI.info.innerText = vmInfo(vm)
 
     if (!vm.halt){
-        _loop = window.requestAnimationFrame(loop)
+            
+        for (let i = 0; i < 8; i++){ 
+            vm.cycle()
+        }
+        if (vm.dt > 0){ vm.dt -= 1 }
+        
+        if (vm.st > 0){ 
+            vm.st -= 1
+            sound.play()
+        } else {
+            sound.pause()
+            sound.currentTime = 0
+        }
+        drawScreen(UI.ctx, vm)
     }
-   
+    
+    window.requestAnimationFrame(loop)
 }
 
 function drawScreen(ctx, vm){
@@ -188,14 +184,5 @@ function drawScreen(ctx, vm){
     }
 }
 
-function vmInfo(vm){
-    return  `PC: ${hexFmt(vm.pc,4)} \n 
-             REG:\n ----- \n ${Array.from(vm.regs).map((x,i) => 'V' + i.toString(16) + ": " + x.toString(16) ).join('\n')} 
-             STACK:\n ----- \n ${Array.from(vm.stack).map((x,i) =>  i.toString(16) + ": " + x.toString(16) ).join('\n')} 
-             VI: ${hexFmt(vm.reg_I,2)} \n
-             DT: ${vm.dt} 
-             ST: ${vm.st}
-            `
-}
 
 

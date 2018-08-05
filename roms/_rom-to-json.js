@@ -14,7 +14,8 @@ fs.readdir('./', (err,files) => {
         if (['sch8', 'ch8'].includes(ext)){
             romJson.push({
                 name:name,
-                sys:ext
+                sys:ext,
+                file:file
             })
         }
 

@@ -8,20 +8,24 @@
 </head>
 <body>
 
-  <canvas id="screen"></canvas> <br>
-  <input type='file' id='file'> <br> <br>
-  <div id="keypad"></div> <br>
-  <button id="play">Play</button>
-  <button id="halt">Halt</button>
-  <button id="step-1">Step 1</button>
-  <button id="step-10">Step 10</button>
+  Select ROM
+  <select id='rom-select'>
+  </select>
+  
+  <br><br>
+
+  Load From File    
+  <input type='file' id='file'>   
+  
+  <br><br>
   <button id="reset">Reset</button>
   
-  <div id="info"></div>
-  <div id="assembly"></div>
-  
-   
+  <br><br>
 
+  <canvas id="screen"></canvas> 
+  <br>
+  <div id="keypad"></div>
+  
  <script src="js/chip-8.js"></script>
   <script src="js/main.js"></script>
 </body>
