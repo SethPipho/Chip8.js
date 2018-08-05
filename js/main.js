@@ -14,7 +14,8 @@ let UI = {
     keypad: document.getElementById('keypad'),
     fileSelect: document.getElementById('file'),
     reset: document.getElementById('reset'),
-    clkSpeed: document.getElementById('clk-speed')
+    clkSpeed: document.getElementById('clk-speed'),
+    fileText: document.getElementById('file-text')
     
 }
 
@@ -68,7 +69,7 @@ UI.clkSpeed.onchange = () => {
 }
 
 UI.romSelect.onchange = () => {
-    UI.fileSelect.innerText = "Select File"
+    UI.fileText.innerText = "Select File"
     loadRom()
 }
 
@@ -83,7 +84,7 @@ UI.fileSelect.onchange = (event) => {
     reader.onload = (event) => {
         selectedRom = -1
         UI.romSelect.selectedIndex = -1
-        UI.fileSelect.innerText = file.name
+        UI.fileText.innerText  = file.name
         rom = event.target.result
         
         vm.reset()
