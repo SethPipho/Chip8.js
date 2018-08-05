@@ -1,6 +1,8 @@
 let rom
 let vm = new Chip8()
 
+let sound = new Audio('static/tone.wav')
+sound.preload = true
 
 
 let UI = {
@@ -41,7 +43,7 @@ UI.fileSelect.onchange = (event) => {
 UI.step1.onclick = () => {
    vm.halt = true
    vm.cycle()
-   drawScreen(UI.ctx, vm.pixels)
+   drawScreen(UI.ctx, vm)
    UI.info.innerText = vmInfo(vm)
 }
 
@@ -50,6 +52,7 @@ UI.step10.onclick = () => {
     for (let k = 0; k < 10; k++){
         vm.cycle()
     }
+    drawScreen(UI.ctx, vm)
 }
 
 UI.play.onclick = () => {
@@ -137,6 +140,7 @@ function init(){
 }
 
 let _loop
+let sound_on = false
 
 function loop(){
   
@@ -144,7 +148,18 @@ function loop(){
         vm.cycle()
     }
     if (vm.dt > 0){ vm.dt -= 1 }
-    if (vm.st > 0){ vm.st -= 1 }
+    
+    if (vm.st > 0){ 
+        vm.st -= 1
+        sound.play()
+    } else {
+        sound.pause()
+        sound.currentTime = 0
+    }
+
+    
+
+    
     
     drawScreen(UI.ctx, vm)
     UI.info.innerText = vmInfo(vm)

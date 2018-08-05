@@ -345,13 +345,13 @@ class Chip8 {
 
             case 0xE:
                 switch (lower){
-                    case 0x9E: //SKP Vx next instruction if Val of Vx is pressed
+                    case 0x9E: //SKP Vx skip next instruction if Val of Vx is pressed
                         if (this.input[this.regs[x]] == 1){
                             this.pc += 2
                         }
                     break;
 
-                    case 0xA1: //SKP Vx next instruction if Val of Vx not pressed
+                    case 0xA1: //SKNP Vx skip next instruction if Val of Vx not pressed
                         if (this.input[this.regs[x]] == 0){
                             this.pc += 2
                         }
@@ -439,14 +439,14 @@ class Chip8 {
                 
                     break;
 
-                    case 0x75: 
+                    case 0x75: //set user flags
                         for (let i = 0; i <= x; i++){
                             this.userFlags[i] = this.regs[i]
                         }
                 
                     break;
 
-                    case 0x85: 
+                    case 0x85: //load user flags
                         for (let i = 0; i <= x; i++){
                             this.regs[i] = this.userFlags[i] 
                         }
@@ -462,7 +462,7 @@ class Chip8 {
             break;
 
            default:
-                console.log(hexFmt(this.pc, 3),hexFmt(upper,2) + hexFmt(lower,2), 'not executed')
+                console.log(hexFmt(this.pc, 3),hexFmt(upper,2) + hexFmt(lower,2), 'not found')
                 this.halt = true
                 return
               
@@ -471,18 +471,6 @@ class Chip8 {
        this.pc += 2
     }
 
-    logScreen(){
-        let str = ""
-        for (let y = 0; y < 32; y++){
-            for (let x = 0; x < 64; x++){
-                str += (this.pixels[x][y] > 0) ? "\u2B1B" : "\u2B1C"
-                //str += this.pixels[x][y] + " "
-            }
-            str += '\n'
-        }
-        return str
-    }
-  
 }
 
 
