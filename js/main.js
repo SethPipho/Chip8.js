@@ -5,13 +5,17 @@ let rom
 let romList = []
 let selectedRom = 33
 
+let clk_speed = 500
+
 let UI = {
     canvas: document.getElementById('screen'),
     ctx:    document.getElementById('screen').getContext('2d'),
     romSelect: document.getElementById('rom-select'),
     keypad: document.getElementById('keypad'),
     fileSelect: document.getElementById('file'),
-    reset: document.getElementById('reset')
+    reset: document.getElementById('reset'),
+    clkSpeed: document.getElementById('clk-speed')
+    
 }
 
 initKeypad()
@@ -35,6 +39,7 @@ fetch('/roms/_roms.json')
         romList = data
         UI.romSelect.selectedIndex = selectedRom
 
+
         loadRom()
     })
 
@@ -46,7 +51,20 @@ function loadRom(){
             rom = buffer
             vm.reset()
             vm.load(rom)
+
+            if (romList[UI.romSelect.selectedIndex].sys =="ch8"){
+                clk_speed = 500
+                UI.clkSpeed.selectedIndex = 0
+            } else {
+                clk_speed = 1000
+                UI.clkSpeed.selectedIndex = 1
+            }
         })       
+}
+
+UI.clkSpeed.onchange = () => {
+   clk_speed = parseInt(UI.clkSpeed.value)
+   console.log(clk_speed)
 }
 
 UI.romSelect.onchange = () => {
@@ -166,7 +184,7 @@ function loop(){
 
     if (!vm.halt){
             
-        for (let i = 0; i < 8; i++){ 
+        for (let i = 0; i < Math.round(clk_speed/60); i++){ 
             vm.cycle()
         }
         if (vm.dt > 0){ vm.dt -= 1 }
