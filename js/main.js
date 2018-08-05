@@ -111,7 +111,6 @@ function initKeypad(){
 
         btn.onmousedown = () => {
             vm.input[i] = 1
-            console.log(i)
         }
 
         btn.onmouseup = () => {

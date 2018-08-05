@@ -94,11 +94,13 @@ class Chip8 {
         let n = (lower & 0xF) //bottom four bits of lower, register address
         let nnn = ((upper & 0xF) << 8) | lower //bottom 12 bits, memory address
 
+       
+
       
        switch(op) {
             case 0:
                 if (y ==0xC){ //SCRL n scroll n lines down
-                    console.log('scroll', n)
+                   
                     for (let x = 0; x < 128; x++){
                         for (let y = 63; y > 0; y--){
                             this.pixels[x][y] = this.pixels[x][y - 1]
@@ -113,8 +115,11 @@ class Chip8 {
 
                 switch(lower){
                     case 0xE0: //CLS Clear Screen
-                        for (let x = 0; x < 64; x++){
-                            for (let y = 0; y < 32; y++){
+                        let width = (this.extendedMode)?128:64
+                        let height = (this.extendedMode)?64:32
+
+                        for (let x = 0; x < width; x++){
+                            for (let y = 0; y < height; y++){
                                 this.pixels[x][y] = 0
                             }
                         }
@@ -125,7 +130,23 @@ class Chip8 {
                         this.pc = this.stack[this.sp]
                     break;
 
-                
+                    case 0xFB: //SCRL 4 px to left
+                        for (let x = 127; x > 3; x--){
+                            for (let y = 0; y < 64; y++){
+                                this.pixels[x][y] = this.pixels[x-4][y]
+                            }
+                        }
+
+                    break;
+
+                    case 0xFC: //SCRL 4 px to left
+                        for (let x = 0; x < 124; x++){
+                            for (let y = 0; y < 64; y++){
+                                this.pixels[x][y] = this.pixels[x+4][y]
+                            }
+                        }
+
+                    break;
 
                     case 0xFE: //EMD Disable extended mode
                         this.extendedMode = false
@@ -271,21 +292,54 @@ class Chip8 {
 
                 this.regs[0xF] = 0
 
-               let height = (n == 0)?16:n
-               let width = (n == 0)?16: 8
+             
 
-                for (let offset = 0; offset < height; offset++){
-                    for (let i = 0; i < width; i++){
-                        let _x = (this.regs[x] + i) % ((this.extendedMode) ? 128 : 64)
-                        let _y = (this.regs[y] + offset) % ((this.extendedMode) ? 64 : 32)
+               if (this.extendedMode){
+
+                let sprite_width =  (n == 0)?  16: 8
+                let sprite_height = (n == 0)?  16: n
+                let sprite_bytes = (n == 0)? 2:1
+
+                for (let offset = 0; offset < sprite_height; offset++){
+                    for (let i = 0; i < sprite_width; i++){
+                        let _x = (this.regs[x] + i) % 128
+                        let _y = (this.regs[y] + offset) % 64
+
                         let prev = this.pixels[_x][_y]
-                        this.pixels[_x][_y] = ((this.mem[this.reg_I + offset] >>> (7 - i)) & 1) ^ this.pixels[_x][_y]
+
+                        if (i < 8){
+                            this.pixels[_x][_y] = ((this.mem[this.reg_I + offset * sprite_bytes] >>> (7 - i)) & 1) ^ this.pixels[_x][_y]
+                        } else {
+                            this.pixels[_x][_y] = ((this.mem[this.reg_I + offset * sprite_bytes + 1] >>> (15 - i)) & 1) ^ this.pixels[_x][_y]
+                        }
+                        
                         
                         if (prev > this.pixels[_x][_y]){
                             this.regs[0xF] = this.regs[0xF] | 1
                         }
                     }
                 }
+               } else {
+                    let sprite_width =  8
+                    let sprite_height = n
+
+                    for (let offset = 0; offset < sprite_height; offset++){
+                        for (let i = 0; i < sprite_width; i++){
+                            let _x = (this.regs[x] + i) %  64
+                            let _y = (this.regs[y] + offset) %  32
+                            
+                            let prev = this.pixels[_x][_y]
+                            this.pixels[_x][_y] = ((this.mem[this.reg_I + offset] >>> (7 - i)) & 1) ^ this.pixels[_x][_y]
+                            
+                            if (prev > this.pixels[_x][_y]){
+                                this.regs[0xF] = this.regs[0xF] | 1
+                            }
+                        }
+                }
+
+               }
+
+               
 
             break;
 
