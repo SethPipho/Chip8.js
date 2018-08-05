@@ -21,6 +21,7 @@ UI.canvas.width = 64 * 10
 UI.canvas.height = 32 * 10
 
 UI.reset.onclick = () => {
+    window.cancelAnimationFrame(_loop)
     init()
 }
 
@@ -91,8 +92,6 @@ function initKeypad(){
         let index = key_mapping[key]
         vm.input[index] = 1
 
-        console.log(key)
-
     }
 
     document.onkeyup = (event) => {
@@ -141,10 +140,11 @@ let _loop
 
 function loop(){
   
-    for (let i = 0; i < 16; i++){ 
+    for (let i = 0; i < 8; i++){ 
         vm.cycle()
     }
     if (vm.dt > 0){ vm.dt -= 1 }
+    if (vm.st > 0){ vm.st -= 1 }
     
     drawScreen(UI.ctx, vm)
     UI.info.innerText = vmInfo(vm)
