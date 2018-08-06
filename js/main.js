@@ -46,7 +46,7 @@ let app = new Vue({
         },
 
         changeRom:function(){
-            fetch('/roms/' + this.selectedRom.file)
+            fetch('./roms/' + this.selectedRom.file)
                 .then((res) => res.arrayBuffer())
                 .then((buffer) => {
                     this.rom = buffer
@@ -83,7 +83,7 @@ let app = new Vue({
 
 
     mounted: function(){
-        fetch('/roms/roms.json')
+        fetch('./roms/roms.json')
             .then((res) => res.json())
             .then((data) => {
                 this.roms = data 
