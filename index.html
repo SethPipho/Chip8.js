@@ -14,12 +14,15 @@
     <h2>CHIP-8</h2>
       
     ROM:
+    <br> <br>
       <select v-on:change="changeRom" v-model="selectedRom">
-          <option v-for="(rom,i) in roms" v-bind:value="rom">
+          <option v-for="(rom) in roms" v-bind:value="rom">
               [{{rom.sys}}] {{ rom.name }}
           </option>
       </select>
-      |
+      
+      <br><br>
+
       <label id ="file" >
           <input type="file" v-on:change="loadRomFromFile($event)">
           <span id="file-text">{{romFile}}</span>
@@ -43,16 +46,16 @@
           <br v-if="key % 4 == 3">
         </span>
       </div>
+
+      <br>
+      <h3> Description </h3>
+
+        <pre>{{selectedRom.description}}</pre>
+      
   </div>
 
 
 
-    <br>
-    <br>
-
-  
-    <br><br>
-    <div id="keypad"></div>
  
 
   <script src="js/chip-8.js"></script>

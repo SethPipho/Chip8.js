@@ -1,4 +1,5 @@
 let vm = new Chip8()
+vm.halt = true
 
 let app = new Vue({
     el: '#app',
@@ -82,11 +83,12 @@ let app = new Vue({
 
 
     mounted: function(){
-        fetch('/roms/_roms.json')
+        fetch('/roms/roms.json')
             .then((res) => res.json())
             .then((data) => {
                 this.roms = data 
-                this.selectedRom = this.roms[32]
+                this.selectedRom = this.roms['./Chip-8 Games/Pong (1 player)']
+               
                 this.changeRom()
             }) 
         
@@ -107,12 +109,8 @@ let app = new Vue({
 
 
 
-
-
-
 let canvas = document.getElementById('screen')
 let ctx = canvas.getContext('2d')
-
 
 canvas.width = 64 * 6
 canvas.height = 32 * 6
