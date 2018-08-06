@@ -4,40 +4,53 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title></title>
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-  <h2> CHIP-8</h2>
+  <div id="app">
+    <h2>CHIP-8</h2>
+      
+    ROM:
+      <select v-on:change="changeRom" v-model="selectedRom">
+          <option v-for="(rom,i) in roms" v-bind:value="rom">
+              [{{rom.sys}}] {{ rom.name }}
+          </option>
+      </select>
+      |
+      <label id ="file" >
+          <input type="file" v-on:change="loadRomFromFile($event)">
+          <span id="file-text">{{romFile}}</span>
+      </label>
+
+      <br><br>
+
+      <button v-on:click="reset">Reset</button>
+
+      Clock Speed:
+      <select v-model="clockSpeed">
+          <option value="500">500hz</option>
+          <option value="1000">1000hz</option>
+      </select>
+      <br><br>
+      <canvas id="screen"></canvas>
+
+      <div id="keypad">
+        <span v-for ="(key, val) in keyMappings">
+          <button v-on:mousedown = "keyPadDown(key)" v-on:mouseup = "keyPadUp(key)" >{{key.toString(16).toUpperCase()}}({{val}})</button>
+          <br v-if="key % 4 == 3">
+        </span>
+      </div>
+  </div>
+
+
+
+    <br>
+    <br>
+
   
-    ROM
-    <select id='rom-select'>
-    </select>
-
-    | File
-    
-    <label id ="file">
-        <input type="file"/>
-        <span id="file-text">Select File</span>
-    </label>
-
-    <br>
-    <br>
-    <button id="reset">Reset</button>
-
-    | CLK SPEED:
-
-    <select id='clk-speed'>
-        <option value="500" selected>500hz</option>
-        <option value="1000" >1000hz</option>
-    </select>
-
-
-    <br>
-    <br>
-
-    <canvas id="screen"></canvas>
     <br><br>
     <div id="keypad"></div>
  

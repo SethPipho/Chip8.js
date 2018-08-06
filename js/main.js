@@ -1,162 +1,126 @@
 let vm = new Chip8()
-vm.halt = true
 
-let rom
-let romList = []
-let selectedRom = 33
+let app = new Vue({
+    el: '#app',
+    data: {
+      message: 'Hello Vue!',
+      roms:[],
+      selectedRom:'',
+      clockSpeed:500,
+      romFile:'Select File',
+      rom:'',
+      keyMappings:{
+            '1':0,
+            '2':1,
+            '3':2,
+            '4':3,
+            'Q':4,
+            'W':5,
+            'E':6,
+            'R':7,
+            'A':8,
+            'S':9,
+            'D':10,
+            'F':11,
+            'Z':12,
+            'X':13,
+            'C':14,
+            'V':15,
+        }
+    },
 
-let clk_speed = 500
+    methods:{
 
-let UI = {
-    canvas: document.getElementById('screen'),
-    ctx:    document.getElementById('screen').getContext('2d'),
-    romSelect: document.getElementById('rom-select'),
-    keypad: document.getElementById('keypad'),
-    fileSelect: document.getElementById('file'),
-    reset: document.getElementById('reset'),
-    clkSpeed: document.getElementById('clk-speed'),
-    fileText: document.getElementById('file-text')
+        keyPadUp: function(i){
+            vm.input[i] = 0
+        },
+
+        keyPadDown: function(i){
+            vm.input[i] = 1
+        },
+
+        reset:function(){
+            vm.reset()
+            vm.load(this.rom)
+        },
+
+        changeRom:function(){
+            fetch('/roms/' + this.selectedRom.file)
+                .then((res) => res.arrayBuffer())
+                .then((buffer) => {
+                    this.rom = buffer
+                    vm.reset()
+                    vm.load(buffer)
+
+                    if (this.selectedRom.sys == "ch8"){
+                        this.clockSpeed = 500
+                    } else {
+                        this.clockSpeed = 1000
+                    }
+
+                    this.romFile = "Select File"
+                })       
+
+        },
+
+        loadRomFromFile:function(event){
+            let file = event.target.files[0]
+            let reader = new FileReader
+            reader.onload = (event) => {
+                this.selectedRom = ""
+                this.romFile = file.name
+                
+                rom = event.target.result
+                this.rom = rom
+                vm.reset()
+                vm.load(rom)
+            }
+            reader.readAsArrayBuffer(file)
+
+        }
+    },
+
+
+    mounted: function(){
+        fetch('/roms/_roms.json')
+            .then((res) => res.json())
+            .then((data) => {
+                this.roms = data 
+                this.selectedRom = this.roms[32]
+                this.changeRom()
+            }) 
+        
+        document.onkeydown = (event) => {
+            let key = String.fromCharCode(event.keyCode)
+            let index = this.keyMappings[key]
+            vm.input[index] = 1
+        }
     
-}
+        document.onkeyup = (event) => {
+            let key = String.fromCharCode(event.keyCode)
+            let index = this.keyMappings[key]
+            vm.input[index] = 0
+        }
+        
+    }
+  })
 
-initKeypad()
 
-UI.canvas.width = 64 * 6
-UI.canvas.height = 32 * 6
+
+
+
+
+let canvas = document.getElementById('screen')
+let ctx = canvas.getContext('2d')
+
+
+canvas.width = 64 * 6
+canvas.height = 32 * 6
 
 let sound = new Audio('static/tone.wav')
 sound.preload = true
 
-//load json file with list of availble roms
-fetch('/roms/_roms.json')
-    .then((res) => res.json())
-    .then((data) => {
-        
-        data.forEach((d,i) => {
-            let option = document.createElement('option')
-            option.innerText = '[' + d.sys + '] ' + d.name
-            UI.romSelect.appendChild(option)
-        })
-        romList = data
-        UI.romSelect.selectedIndex = selectedRom
 
-
-        loadRom()
-    })
-
-//load rom over network
-function loadRom(){
-    fetch('/roms/' + romList[UI.romSelect.selectedIndex].file)
-        .then((res) => res.arrayBuffer())
-        .then((buffer) => {
-            rom = buffer
-            vm.reset()
-            vm.load(rom)
-
-            if (romList[UI.romSelect.selectedIndex].sys =="ch8"){
-                clk_speed = 500
-                UI.clkSpeed.selectedIndex = 0
-            } else {
-                clk_speed = 1000
-                UI.clkSpeed.selectedIndex = 1
-            }
-        })       
-}
-
-UI.clkSpeed.onchange = () => {
-   clk_speed = parseInt(UI.clkSpeed.value)
-   console.log(clk_speed)
-}
-
-UI.romSelect.onchange = () => {
-    UI.fileText.innerText = "Select File"
-    loadRom()
-}
-
-UI.reset.onclick = () => {
-   vm.reset()
-   vm.load(rom)
-}
-
-UI.fileSelect.onchange = (event) => {
-    let file = event.target.files[0]
-    let reader = new FileReader
-    reader.onload = (event) => {
-        selectedRom = -1
-        UI.romSelect.selectedIndex = -1
-        UI.fileText.innerText  = file.name
-        rom = event.target.result
-        
-        vm.reset()
-        vm.load(rom)
-    }
-    reader.readAsArrayBuffer(file)
-}
-
-
-function initKeypad(){
-
-    let key_mapping = {
-        '1':0,
-        '2':1,
-        '3':2,
-        '4':3,
-        'Q':4,
-        'W':5,
-        'E':6,
-        'R':7,
-        'A':8,
-        'S':9,
-        'D':10,
-        'F':11,
-        'Z':12,
-        'X':13,
-        'C':14,
-        'V':15,
-    }
-
-    document.onkeydown = (event) => {
-        let key = String.fromCharCode(event.keyCode)
-        let index = key_mapping[key]
-        vm.input[index] = 1
-    }
-
-    document.onkeyup = (event) => {
-        let key = String.fromCharCode(event.keyCode)
-        let index = key_mapping[key]
-        vm.input[index] = 0
-    }
-
-    
-
-    for (let i = 0; i < 16; i++){
-        let btn = document.createElement('button')
-
-        for (let letter in key_mapping){
-            if (key_mapping[letter] == i){
-                btn.innerText = i.toString(16) + "(" + letter + ")"
-                break
-            }
-        }
-
-        btn.onmousedown = () => {
-            vm.input[i] = 1
-        }
-
-        btn.onmouseup = () => {
-            vm.input[i] = 0
-        }
-
-        btn.onmouseleave = () => {
-            vm.input[i] = 0
-        }
-
-        UI.keypad.appendChild(btn)
-        if (i % 4 == 3){
-            UI.keypad.appendChild(document.createElement('br'))
-        }
-    }
-}
 
 
 function drawScreen(ctx, vm){
@@ -185,7 +149,7 @@ function loop(){
 
     if (!vm.halt){
             
-        for (let i = 0; i < Math.round(clk_speed/60); i++){ 
+        for (let i = 0; i < Math.round(app.clockSpeed/60); i++){ 
             vm.cycle()
         }
         if (vm.dt > 0){ vm.dt -= 1 }
@@ -197,7 +161,7 @@ function loop(){
             sound.pause()
             sound.currentTime = 0
         }
-        drawScreen(UI.ctx, vm)
+        drawScreen(ctx, vm)
     }
     window.requestAnimationFrame(loop)
 }
