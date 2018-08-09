@@ -12,46 +12,50 @@
 
   <div id="app">
     <h2>CHIP-8</h2>
-      
+
     ROM:
-    <br> <br>
-      <select v-on:change="changeRom" v-model="selectedRom">
-          <option v-for="(rom) in roms" v-bind:value="rom">
-              [{{rom.sys}}] {{ rom.name }}
-          </option>
-      </select>
-      
-      <br><br>
+    <br>
+    <br>
+    <select v-on:change="changeRom" v-model="selectedRom">
+      <option v-for="(rom) in roms" v-bind:value="rom">
+        [{{rom.sys}}] {{ rom.name }}
+      </option>
+    </select>
 
-      <label id ="file" >
-          <input type="file" v-on:change="loadRomFromFile($event)">
-          <span id="file-text">{{romFile}}</span>
-      </label>
+    <br>
+    <br>
 
-      <br><br>
+    <label id="file">
+      <input type="file" v-on:change="loadRomFromFile($event)">
+      <span id="file-text">{{romFile}}</span>
+    </label>
 
-      <button v-on:click="reset">Reset</button>
+    <br>
+    <br>
 
-      Clock Speed:
-      <select v-model="clockSpeed">
-          <option value="500">500hz</option>
-          <option value="1000">1000hz</option>
-      </select>
-      <br><br>
-      <canvas id="screen"></canvas>
+    <button v-on:click="reset">Reset</button>
 
-      <div id="keypad">
-        <span v-for ="(key, val) in keyMappings">
-          <button v-on:mousedown = "keyPadDown(key)" v-on:mouseup = "keyPadUp(key)" >{{key.toString(16).toUpperCase()}}({{val}})</button>
-          <br v-if="key % 4 == 3">
-        </span>
-      </div>
+    Clock Speed:
+    <select v-model="clockSpeed">
+      <option value="500">500hz</option>
+      <option value="1000">1000hz</option>
+    </select>
+    <br>
+    <br>
+    <canvas id="screen"></canvas>
 
-      <br>
-      <h3> Description </h3>
+    <div id="keypad">
+      <span v-for="(key, val) in keyMappings">
+        <button v-on:mousedown="keyPadDown(key)" v-on:mouseup="keyPadUp(key)">{{key.toString(16).toUpperCase()}}({{val}})</button>
+        <br v-if="key % 4 == 3">
+      </span>
+    </div>
 
-        <pre>{{selectedRom.description}}</pre>
-      
+    <br>
+    <h3> Description </h3>
+
+    <pre>{{selectedRom.description}}</pre>
+
   </div>
 
   <script src="js/chip-8.js"></script>
